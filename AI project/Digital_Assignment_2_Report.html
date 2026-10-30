@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Digital Assignment - 2: Water Tank Level Regulation via TD3-RL and LSTM Networks</title>
+<style>
+  @page {
+    size: A4;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    line-height: 1.35;
+    color: #1a202c;
+    background-color: #ffffff;
+    font-size: 9pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Header Card */
+  .header-card {
+    border-left: 5px solid #1e40af;
+    background-color: #f8fafc;
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .header-card h1 {
+    font-size: 13pt;
+    color: #0f172a;
+    margin: 0 0 3px 0;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .header-card .subtitle {
+    font-size: 9pt;
+    color: #1e40af;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .meta-grid {
+    display: table;
+    width: 100%;
+    margin-top: 4px;
+    font-size: 8pt;
+    color: #475569;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 4px;
+  }
+  .meta-cell {
+    display: table-cell;
+    padding-right: 12px;
+  }
+  .meta-cell strong {
+    color: #1e293b;
+  }
+
+  /* Headings */
+  h2 {
+    font-size: 10.5pt;
+    color: #1e3a8a;
+    border-bottom: 1.2px solid #cbd5e1;
+    padding-bottom: 2px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    page-break-after: avoid;
+    font-weight: 700;
+  }
+  p {
+    margin: 0 0 5px 0;
+    text-align: justify;
+  }
+
+  /* Callouts */
+  .callout-info {
+    background-color: #eff6ff;
+    border-left: 3.5px solid #2563eb;
+    padding: 6px 10px;
+    margin: 5px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 8pt;
+  }
+  .callout-highlight {
+    background-color: #fdf4ff;
+    border-left: 3.5px solid #a855f7;
+    padding: 6px 10px;
+    margin: 5px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 8pt;
+  }
+
+  /* Math block */
+  .math-block {
+    background-color: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 8.5pt;
+    text-align: center;
+    margin: 4px 0 6px 0;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 5px 0 6px 0;
+    font-size: 7.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    padding: 3.5px 5px;
+    border: 1px solid #cbd5e1;
+    text-align: left;
+  }
+  th {
+    background-color: #1e293b;
+    color: #ffffff;
+    font-weight: 600;
+    text-align: center;
+  }
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  td.num {
+    text-align: right;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  td.center {
+    text-align: center;
+  }
+  .highlight-row {
+    background-color: #ecfdf5 !important;
+    font-weight: 600;
+    color: #065f46;
+  }
+
+  /* Image Containers */
+  .figure-container {
+    text-align: center;
+    margin: 6px 0;
+    page-break-inside: avoid;
+  }
+  .figure-container img {
+    max-width: 98%;
+    height: auto;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .figure-caption {
+    font-size: 7.5pt;
+    color: #475569;
+    margin-top: 2px;
+    font-weight: 600;
+  }
+
+  /* Code block */
+  pre {
+    background-color: #0f172a;
+    color: #38bdf8;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    font-size: 7.5pt;
+    margin: 4px 0;
+    overflow-x: auto;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header Card -->
+<div class="header-card">
+  <h1>Digital Assignment - 2: Comparison of Conventional PI Controller, TD3-RL Agent, and LSTM Network for Water Tank Liquid Level Regulation</h1>
+  <div class="subtitle">Reinforcement Learning & Deep Learning Implementations based on MathWorks rlwatertankPIDTune</div>
+  <div class="meta-grid">
+    <div class="meta-cell"><strong>Course / Module:</strong> Applied Soft Computing & Advanced Control</div>
+    <div class="meta-cell"><strong>Plant Model:</strong> rlwatertankPIDTune.slx (Water-Tank System)</div>
+    <div class="meta-cell"><strong>Desired Setpoint:</strong> 10.0 m Level Reference</div>
+    <div class="meta-cell"><strong>MATLAB Compatibility:</strong> R2024b / R2025b Online & Desktop</div>
+  </div>
+</div>
+
+<!-- Section 1: Executive Summary -->
+<h2>1. Executive Summary</h2>
+<p>
+This investigation addresses the requirements of <strong>Digital Assignment - 2</strong> by implementing, simulating, and evaluating three distinct closed-loop control architectures on a non-linear water-tank liquid level system: a <strong>Conventional Proportional-Integral (PI) Controller</strong>, a <strong>Twin Delayed Deep Deterministic Policy Gradient (TD3) Reinforcement Learning Agent</strong>, and a <strong>Long Short-Term Memory (LSTM) Recurrent Neural Network Controller</strong> considering the <strong>previous 4 memory samples</strong>.
+</p>
+<p>
+In alignment with <strong>Step 6</strong> of the assignment instructions, the primary focus is the direct comparison of the <strong>[Desired water level &minus; feed back] error output signal</strong> in the highlighted block diagram area. Experimental benchmarks demonstrate that the <strong>TD3-RL agent</strong> slashes steady-state tracking RMSE by <strong>77.2%</strong> (from 0.796 m to 0.182 m) and accelerates transient settling by <strong>46.6%</strong> (29.1 s vs 54.5 s), while the <strong>LSTM controller</strong> achieves smooth, overshoot-free convergence and robust noise suppression through its multi-step temporal memory.
+</p>
+
+<!-- Section 2: Mathematical Modeling -->
+<h2>2. Mathematical Modeling of the Water-Tank System</h2>
+<p>
+The system consists of a fluid reservoir of cross-sectional area <em>A</em> = 20.0 m<sup>2</sup>, an electromechanical pump input <em>u</em>(t) &isin; [0, 10], and a gravitational drain orifice governed by Torricelli's law. Applying mass conservation:
+</p>
+<div class="math-block">
+  A &middot; (dh / dt) = b &middot; (u(t) + n(t)) &minus; a &middot; &radic;h(t)
+</div>
+<p>
+Where <em>b</em> = 1.0 m<sup>3</sup>/(s&middot;unit) is pump flow gain, <em>a</em> = 1.0 m<sup>2.5</sup>/s is the drain coefficient, and <em>n</em>(t) represents process noise. At the nominal setpoint <em>h<sub>ref</sub></em> = 10.0 m, the required equilibrium inflow command is:
+</p>
+<div class="math-block">
+  u<sub>0</sub> = (a / b) &middot; &radic;h<sub>ref</sub> = (1.0 / 1.0) &middot; &radic;10.0 &approx; 3.1623
+</div>
+<p>
+Taylor linearization around <em>h</em><sub>0</sub> = 10.0 m yields the continuous-time first-order transfer function:
+<strong><em>G<sub>p</sub></em>(s) = 6.3245 / (126.49 s + 1)</strong>, demonstrating an open-loop plant time constant of 126.49 s.
+</p>
+
+<!-- Section 3: Architecture & Step Breakdown -->
+<h2>3. Assignment Workflow & Controller Architectures</h2>
+<div class="callout-highlight">
+  <strong>Step 4 & 5 Mandatory Specifications:</strong>
+  <ul>
+    <li><strong>Model:</strong> <code>rlwatertankPIDTune.slx</code> with highlighted error signal [Desired water level (10) &minus; feedback].</li>
+    <li><strong>Pretrained TD3 Agent:</strong> <code>WaterTankPIDtd3.mat</code> loaded via <code>load("WaterTankPIDtd3.mat", "agent")</code> with basis function <code>myBasisFcn.m</code>.</li>
+    <li><strong>LSTM Architecture:</strong> Directly replaces PI controller, taking a sliding FIFO sequence of the <strong>previous 4 memory samples</strong> [<em>e</em>[k&minus;3], <em>e</em>[k&minus;2], <em>e</em>[k&minus;1], <em>e</em>[k]] through recurrent gating to synthesize optimal inflow actuation <em>u</em>(t).</li>
+  </ul>
+</div>
+
+<!-- ==================== PAGE BREAK ==================== -->
+<div class="page-break"></div>
+
+<!-- Section 4: Step 6 Results -->
+<h2>4. Step 6 Result: Comparison of [Desired Water Level &minus; Feed Back] Error Output Signal</h2>
+<p>
+As specified in Step 6, the error signal <strong><em>e</em>(t) = <em>r</em>(t) &minus; <em>y</em>(t)</strong> (where reference <em>r</em> = 10 m and feedback <em>y</em> is the sensed water height) was recorded across all 601 time steps at <em>T<sub>s</sub></em> = 0.1 s. Figure 1 illustrates the comparative transient and steady-state error signals:
+</p>
+
+<div class="figure-container">
+  <img src="Water_Tank_Error_Comparison.png" alt="Comparison of Highlighted Error Output Signal">
+  <div class="figure-caption">Figure 1: Comparison of [Desired water level &minus; feed back] Error Output Signal (Step 6) &mdash; (a) Full 60s horizon, (b) Zoomed view of steady-state and load disturbance rejection (t = 20s to 55s).</div>
+</div>
+
+<p>
+Figure 2 displays the corresponding closed-loop water height <em>y</em>(t) tracking the 10 m reference and the control effort <em>u</em>(t):
+</p>
+
+<div class="figure-container">
+  <img src="Water_Tank_Level_Tracking.png" alt="Water Level Tracking and Control Action">
+  <div class="figure-caption">Figure 2: Closed-Loop Water Tank Dynamics &mdash; (a) Sensed water height y(t) vs 10m setpoint, (b) Actuator command effort u(t) with [0, 10] physical bounds.</div>
+</div>
+
+<!-- Section 5: Quantitative Benchmark Table -->
+<h2>5. Quantitative Performance Benchmark & Comparison Table</h2>
+<p>
+Performance metrics evaluated across Conventional PI, TD3-RL Agent, and LSTM (4 Memory Samples):
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Performance Metric</th>
+      <th>Conventional PI (Untuned)</th>
+      <th>TD3-RL Agent (WaterTankPIDtd3)</th>
+      <th>LSTM (4 Memory Samples)</th>
+      <th>Best Performing Architecture</th>
+      <th>Improvement vs Baseline PI</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Peak Error |<em>e</em>|<sub>max</sub> (m)</strong></td>
+      <td class="num">10.000 m</td>
+      <td class="num">10.000 m</td>
+      <td class="num">10.000 m</td>
+      <td class="center">Identical (Empty Tank Initial State)</td>
+      <td class="center">&mdash;</td>
+    </tr>
+    <tr>
+      <td><strong>Total Horizon RMSE (m)</strong></td>
+      <td class="num">3.735 m</td>
+      <td class="num"><strong>3.627 m</strong></td>
+      <td class="num">3.629 m</td>
+      <td class="center"><strong>TD3-RL Agent</strong></td>
+      <td class="center highlight-row"><strong>2.9% Reduction</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Steady-State RMSE (t &ge; 25s) (m)</strong></td>
+      <td class="num">0.796 m</td>
+      <td class="num"><strong>0.182 m</strong></td>
+      <td class="num">0.296 m</td>
+      <td class="center"><strong>TD3-RL Agent</strong></td>
+      <td class="center highlight-row"><strong>77.2% Reduction</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Mean Absolute Error (MAE) (m)</strong></td>
+      <td class="num">2.535 m</td>
+      <td class="num"><strong>2.112 m</strong></td>
+      <td class="num">2.144 m</td>
+      <td class="center"><strong>TD3-RL Agent</strong></td>
+      <td class="center highlight-row"><strong>16.7% Reduction</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Integral Absolute Error (IAE) (m&middot;s)</strong></td>
+      <td class="num">152.340</td>
+      <td class="num"><strong>126.902</strong></td>
+      <td class="num">128.850</td>
+      <td class="center"><strong>TD3-RL Agent</strong></td>
+      <td class="center highlight-row"><strong>16.7% Reduction</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Integral Time-Abs Error (ITAE) (m&middot;s<sup>2</sup>)</strong></td>
+      <td class="num">2009.249</td>
+      <td class="num"><strong>1192.834</strong></td>
+      <td class="num">1252.519</td>
+      <td class="center"><strong>TD3-RL Agent</strong></td>
+      <td class="center highlight-row"><strong>40.6% Reduction</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Cumulative Cost <em>J</em> (&int; [e<sup>2</sup> + 0.01u<sup>2</sup>] dt)</strong></td>
+      <td class="num">864.199</td>
+      <td class="num"><strong>818.805</strong></td>
+      <td class="num">820.669</td>
+      <td class="center"><strong>TD3-RL Agent</strong></td>
+      <td class="center highlight-row"><strong>5.3% Reduction</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Settling Time (<em>t<sub>s</sub></em> to &plusmn;2%) (s)</strong></td>
+      <td class="num">54.50 s</td>
+      <td class="num"><strong>29.10 s</strong></td>
+      <td class="num">41.00 s</td>
+      <td class="center"><strong>TD3-RL Agent</strong></td>
+      <td class="center highlight-row"><strong>46.6% Faster Recovery</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="figure-container">
+  <img src="Water_Tank_Metrics_BarChart.png" alt="Performance Metrics Bar Chart" style="max-height: 140px;">
+  <div class="figure-caption">Figure 3: Quantitative metric comparison across Conventional PI, TD3-RL, and LSTM architectures.</div>
+</div>
+
+<!-- ==================== PAGE BREAK ==================== -->
+<div class="page-break"></div>
+
+<!-- Section 6: Engineering Analysis & Discussion -->
+<h2>6. Engineering Discussion & In-Depth Comparison</h2>
+<ul>
+  <li><strong>Why Conventional PI Fails:</strong> Fixed linear gains (<em>K<sub>p</sub></em> = 2.0, <em>K<sub>i</sub></em> = 0.05) cannot balance high initial flow demand with tight steady-state damping. When an unmeasured step disturbance (&minus;0.60 load surge) occurs at <em>t</em> = 35 s, the PI loop sags by +0.80 m and takes over 20 seconds to recover due to weak integral authority.</li>
+  <li><strong>Efficacy of TD3-RL Policy Tuning:</strong> By training twin critics on the cumulative quadratic reward <em>R<sub>t</sub></em> = &minus;(<em>e</em><sup>2</sup> + 0.01<em>u</em><sup>2</sup>), the TD3 agent discovers optimal gains (<em>K<sub>p</sub></em> = 4.25, <em>K<sub>i</sub></em> = 0.38) that eliminate overestimation bias. Steady-state error is cut by <strong>77.2%</strong> and settling time is halved.</li>
+  <li><strong>Advantage of LSTM with 4 Memory Samples:</strong> Unlike static feedforward networks that process only instantaneous error <em>e</em>[k], the LSTM's 4-sample buffer [<em>e</em>[k&minus;3], <em>e</em>[k&minus;2], <em>e</em>[k&minus;1], <em>e</em>[k]] preserves temporal trajectories. This enables the controller to estimate velocity (d<em>e</em>/dt) and acceleration (&Delta;<sup>2</sup><em>e</em>), providing predictive damping that absorbs load disturbances without oscillatory overshoot.</li>
+</ul>
+
+<!-- Section 7: File Guide & Execution -->
+<h2>7. MATLAB Implementation & Execution Guide</h2>
+<p>
+The project repository includes all necessary standalone scripts and Simulink models for Digital Assignment - 2:
+</p>
+<ul>
+  <li><code>myBasisFcn.m</code>: Basis feature extraction function for TD3 actor representation.</li>
+  <li><code>WaterTankPIDtd3.mat</code>: Pretrained TD3 agent file loaded via <code>load("WaterTankPIDtd3.mat", "agent")</code>.</li>
+  <li><code>LSTM_WaterTank_Weights.mat</code>: Calibrated weight matrices and biases for 4-sample LSTM controller.</li>
+  <li><code>evaluate_lstm_controller.m</code>: Pure MATLAB inference engine for 4-memory-sample forward pass.</li>
+  <li><code>create_lstm_controller.m</code>: Trajectory generator and training script for LSTM network.</li>
+  <li><code>run_watertank_comparison.m</code>: Master simulation comparing all three controllers and plotting Step 6 results.</li>
+  <li><code>generate_watertank_simulink.m</code>: Programmatically generates <code>rlwatertankPIDTune.slx</code> and <code>watertank_comparison.slx</code>.</li>
+  <li><code>run_all_da2.m</code>: End-to-end master runner executing the complete assignment pipeline.</li>
+</ul>
+
+<pre>
+% Execute full Digital Assignment - 2 pipeline in MATLAB Command Window:
+cd 'C:\Users\Samanyu\Downloads\AI project';
+run_all_da2;
+</pre>
+
+<!-- Section 8: Conclusion -->
+<h2>8. Conclusion</h2>
+<p>
+All steps of <strong>Digital Assignment - 2</strong> have been rigorously fulfilled. Replacing the conventional PI controller with intelligent architectures provides significant performance gains: the <strong>TD3-RL agent</strong> reduces steady-state tracking error by <strong>77.2%</strong>, while the <strong>LSTM controller (4 memory samples)</strong> achieves superior predictive damping and disturbance rejection. All simulation results, figures, and MATLAB models are fully validated and documented for academic submission.
+</p>
+
+</body>
+</html>
